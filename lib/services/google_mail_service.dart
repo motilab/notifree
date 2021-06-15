@@ -1,24 +1,20 @@
-import 'package:google_sign_in_web/google_sign_in_web.dart';
-import 'package:googleapis/gmail/v1.dart';
+
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/gmail/v1.dart' as gmail;
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+
 import '../services/mail_service.dart';
 import '../util/nullable_element_iterable.dart';
 
 class GoogleMailService implements MailService {
-  final _googleService = GoogleSignIn(
-    scopes: <String>[
-      'email',
-      GmailApi.gmailLabelsScope
-    ]
-  );
+  final _googleService = GoogleSignIn();
 
-  Future<GmailApi> _getGmailApi() async {
+  Future<gmail.GmailApi> _getGmailApi() async {
     final client = (await _googleService.authenticatedClient())!;
-    return GmailApi(client);
+    return gmail.GmailApi(client);
   }
 
-  Future<List<String>> _getUnreadMailIds(GmailApi api) async {
+  Future<List<String>> _getUnreadMailIds(gmail.GmailApi api) async {
     final unreadMails = await api
         .users
         .messages
@@ -35,7 +31,7 @@ class GoogleMailService implements MailService {
   Future<void> deleteAllUnreadMails() async {
     final api = await _getGmailApi();
     final unreadMailIds = await _getUnreadMailIds(api);
-    final modifyRequest = BatchModifyMessagesRequest();
+    final modifyRequest = gmail.BatchModifyMessagesRequest();
 
     modifyRequest.ids = unreadMailIds;
     modifyRequest.removeLabelIds = <String>['UNREAD'];
@@ -45,7 +41,13 @@ class GoogleMailService implements MailService {
 
   @override
   Future<bool> login() async {
-    await _googleService.signIn();
+    try {
+      await _googleService.signIn();
+    }
+    on Exception catch(e) {
+      print(e);
+    }
+
     return await _googleService.isSignedIn();
   }
 
@@ -53,7 +55,7 @@ class GoogleMailService implements MailService {
   Future<void> readAllUnreadMails() async {
     final api = await _getGmailApi();
     final unreadMailIds = await _getUnreadMailIds(api);
-    final modifyRequest = BatchModifyMessagesRequest();
+    final modifyRequest = gmail.BatchModifyMessagesRequest();
 
     modifyRequest.ids = unreadMailIds;
     modifyRequest.removeLabelIds = <String>['UNREAD'];
