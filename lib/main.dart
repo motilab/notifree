@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:notifree/application.dart';
+import 'package:google_sign_in_web/google_sign_in_web.dart';
+import './application.dart';
+import './services/google_mail_service.dart';
 
-void main() {
-  var app = Application();
+void main() async {
+  final googleMailService = GoogleMailService();
+
+  await GoogleSignInPlugin().init();
+
+  final app = Application(
+    googleMailService: googleMailService,
+  );
   runApp(app);
 }
