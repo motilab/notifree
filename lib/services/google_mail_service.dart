@@ -1,4 +1,3 @@
-
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/gmail/v1.dart' as gmail;
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
@@ -6,12 +5,12 @@ import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sig
 import '../services/mail_service.dart';
 import '../util/nullable_element_iterable.dart';
 
-class GoogleMailService implements MailService {
-  final _googleService = GoogleSignIn();
+final _googleService = GoogleSignIn();
 
+class GoogleMailService implements MailService {
   Future<gmail.GmailApi> _getGmailApi() async {
-    final client = (await _googleService.authenticatedClient())!;
-    return gmail.GmailApi(client);
+    final client = await _googleService.authenticatedClient();
+    return gmail.GmailApi(client!);
   }
 
   Future<List<String>> _getUnreadMailIds(gmail.GmailApi api) async {
@@ -42,13 +41,17 @@ class GoogleMailService implements MailService {
   @override
   Future<bool> login() async {
     try {
-      await _googleService.signIn();
+      final user = await _googleService.signInSilently();
+      if (user == null) {
+        await _googleService.signIn();
+      }
     }
     on Exception catch(e) {
       print(e);
     }
 
-    return await _googleService.isSignedIn();
+    return await _googleService.isSignedIn() &&
+      await _googleService.requestScopes([gmail.GmailApi.mailGoogleComScope]);
   }
 
   @override
@@ -63,8 +66,10 @@ class GoogleMailService implements MailService {
   }
 
   @override
-  Future<int> unreadMailCount() {
-    // TODO: implement unreadMailCount
-    throw UnimplementedError();
+  Future<int> unreadMailCount() async {
+    final api = await _getGmailApi();
+    final unreadMailIds = await _getUnreadMailIds(api);
+
+    return unreadMailIds.length;
   }
 }
