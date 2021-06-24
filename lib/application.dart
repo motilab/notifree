@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:notifree/screens/mail_clean_screen.dart';
 import './screens/login_screen.dart';
+import './screens/mail_clean_screen.dart';
 import './services/mail_service.dart';
 
 class Application extends StatelessWidget {
@@ -17,7 +17,7 @@ class Application extends StatelessWidget {
     return MaterialApp(
       title: 'notifree',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        fontFamily: 'NotoSansKR',
       ),
       routes: <String, WidgetBuilder>{
         '/': (context) => LoginScreen(
